@@ -1,10 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Iditarod ⇄ Metric ⇄ Imperial — Converter</title>
+  <style>
+    :root { --bg:#f8fafc; --fg:#111827; --accent:#22c55e; --border:#d1d5db; --muted:#6b7280; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui, sans-serif;background:var(--bg);color:var(--fg);display:grid;place-items:center;padding:20px}
+    .card{width:100%;max-width:600px;background:#fff;border:1px solid var(--border);border-radius:18px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+    h1{margin:0 0 10px;font-size:clamp(1.5rem,2vw+1rem,2.2rem);text-align:center}
+    p.sub{text-align:center;margin:0 0 18px;color:var(--muted)}
+    label{font-weight:600;font-size:.95rem;margin-bottom:4px;display:block}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center; text-align: center;}
+    .field{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--border);padding:10px 12px;border-radius:12px;width:100%;margin-bottom: 40px;}
+    .field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,197,94,.28)}
+    input[type=number]{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--fg);font-size:1rem;text-align:center}
+    select{border:1px solid var(--border);background:#fff;color:var(--fg);padding:8px 10px;border-radius:10px;font-size:1rem;cursor:pointer}
+    select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,197,94,.28)}
+    select option:checked{background:var(--accent);color:#fff}
+    .section{margin-bottom:20px}
+    .out{display:grid;gap:6px;background:#f1f5f9;border:1px dashed var(--border);border-radius:12px;padding:12px;margin-top:10px;text-align:center}
+    .value{font-size:1.6rem;font-weight:700;color:var(--accent)}
+    .muted{color:var(--muted);font-size:.9rem;text-align:center}
+  </style>
+</head>
 <body>
+  <main class="card" role="main">
+    <h1>Iditarod ⇄ Metric ⇄ Imperial Converter</h1>
+    <p class="sub">Convert between Iditarod, Metric, and Imperial systems for length, mass, and time. Defaults to converting Imperial → Iditarod.</p>
 
-<h1>Salutations</h1>
+    <!-- INPUT SECTION -->
+    <div class="section">
+      <div class="row">
+          <div>
+            <label for="inSystem">Input System</label>
+            <select id="inSystem">
+              <option value="iditarod">Iditarod</option>
+              <option value="metric">Metric (SI)</option>
+              <option value="imperial" selected>Imperial (US)</option>
+            </select>
+          </div>
+          <div>
+            <label for="inPrefix">Prefix</label>
+            <select id="inPrefix">
+              <option value="1">(none)</option>
+              <option value="1e9">Giga (G)</option>
+              <option value="1e6">Mega (M)</option>
+              <option value="1e3">Kilo (k)</option>
+              <option value="1e-2">Centi (c)</option>
+              <option value="1e-3">Milli (m)</option>
+              <option value="1e-6">Micro (µ)</option>
+              <option value="1e-9">Nano (n)</option>
+            </select>
+          </div>
+          <div>
+            <label for="inUnit">Input Unit</label>
+            <select id="inUnit" style="min-width:200px"></select>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1 1 100%">
+          <label for="inVal">Input Value</label>
+          <input id="inVal" type="number" step="any" placeholder="e.g., 12" />
+        </div>
+    </div>
 
-<p>I would like to display nautical maps on my site.</p>
+    <!-- OUTPUT SECTION -->
+    <div class="section">
+      <div class="row">
+        <div>
+          <label for="outSystem">Output System</label>
+          <select id="outSystem">
+            <option value="metric">Metric (SI)</option>
+            <option value="imperial">Imperial (US)</option>
+            <option value="iditarod" selected>Iditarod</option>
+          </select>
+        </div>
+        <div>
+          <label for="outPrefix">Prefix</label>
+          <select id="outPrefix">
+            <option value="1">(none)</option>
+            <option value="1e9">Giga (G)</option>
+            <option value="1e6">Mega (M)</option>
+            <option value="1e3">Kilo (k)</option>
+            <option value="1e-2">Centi (c)</option>
+            <option value="1e-3">Milli (m)</option>
+            <option value="1e-6">Micro (µ)</option>
+            <option value="1e-9">Nano (n)</option>
+          </select>
+        </div>
+        <div>
+          <label for="outUnit">Output Unit</label>
+          <select id="outUnit" style="min-width:200px"></select>
+        </div>
+      </div>
+      <div class="out" aria-live="polite" aria-atomic="true">
+        <label>Output</label>
+        <div class="value" id="result">—</div>
+        <div class="muted" id="explain">Pick systems & units, then enter a value.</div>
+      </div>
+    </div>
+  </main>
 
+  <script>
+    const UNITS = {
+      iditarod: {
+        length:[{u:'I',label:'Iditarod (I)',toSI:1688202},{u:'db',label:'Dob Booties (db)',toSI:0.0889}],
+        mass:[{u:'h',label:'husky (h)',toSI:52},{u:'p',label:'pup (p)',toSI:1.814}],
+        time:[{u:'S',label:'Seavey (S)',toSI:704413}]
+      },
+      metric: {
+        length:[{u:'m',label:'meter (m)',toSI:1}],
+        mass:[{u:'kg',label:'kilogram (kg)',toSI:1}],
+        time:[{u:'s',label:'second (s)',toSI:1}]
+      },
+      imperial: {
+        length:[{u:'in',label:'inch (in)',toSI:0.0254},{u:'ft',label:'foot (ft)',toSI:0.3048},{u:'yd',label:'yard (yd)',toSI:0.9144},{u:'mi',label:'mile (mi)',toSI:1609.34}],
+        mass:[{u:'oz',label:'ounce (oz)',toSI:0.028349523125},{u:'lb',label:'pound (lb)',toSI:0.45359237},{u:'slug',label:'slug (slug)',toSI:14.59390294}],
+        time:[{u:'s',label:'second (s)',toSI:1},{u:'min',label:'minute (min)',toSI:60},{u:'h',label:'hour (h)',toSI:3600}]
+      }
+    };
+
+    const inVal=document.getElementById('inVal'),inPrefix=document.getElementById('inPrefix'),inSystem=document.getElementById('inSystem'),inUnit=document.getElementById('inUnit'),outSystem=document.getElementById('outSystem'),outPrefix=document.getElementById('outPrefix'),outUnit=document.getElementById('outUnit'),result=document.getElementById('result'),explain=document.getElementById('explain');
+
+    function option(v,t){const o=document.createElement('option');o.value=v;o.textContent=t;return o;}
+    function populateUnitSelect(selectEl,system){const groups=UNITS[system];selectEl.innerHTML='';for(const kind of Object.keys(groups)){const og=document.createElement('optgroup');og.label=kind[0].toUpperCase()+kind.slice(1);groups[kind].forEach(u=>og.appendChild(option(u.u,u.label)));selectEl.appendChild(og);}if(selectEl.options.length)selectEl.selectedIndex=0;}
+    function getUnitMeta(system,unit){const groups=UNITS[system];for(const kind of Object.keys(groups)){const found=groups[kind].find(u=>u.u===unit);if(found)return{kind,...found};}return null;}
+    function getOutUnitsForKind(system,kind){return UNITS[system][kind];}
+    function getPrefixSymbol(v){return({'1e9':'G','1e6':'M','1e3':'k','1e-2':'c','1e-3':'m','1e-6':'µ','1e-9':'n'})[v]||'';}
+    function repopulateOutputUnits(){const inMeta=getUnitMeta(inSystem.value,inUnit.value);if(!inMeta){outUnit.innerHTML='';return;}const arr=getOutUnitsForKind(outSystem.value,inMeta.kind);outUnit.innerHTML='';arr.forEach(u=>outUnit.appendChild(option(u.u,u.label)));if(outUnit.options.length)outUnit.selectedIndex=0;}
+    function convert(){const val=parseFloat(inVal.value);if(!Number.isFinite(val)){result.textContent='—';explain.textContent='Enter a number.';return;}const inMeta=getUnitMeta(inSystem.value,inUnit.value);if(!inMeta){result.textContent='—';explain.textContent='Pick input unit.';return;}const outMeta=getUnitMeta(outSystem.value,outUnit.value);if(!outMeta){result.textContent='—';explain.textContent='Pick output unit.';return;}if(inMeta.kind!==outMeta.kind){explain.textContent='Kinds must match (length↔length, mass↔mass, time↔time).';result.textContent='—';return;}const inPref=parseFloat(inPrefix.value)||1,outPref=parseFloat(outPrefix.value)||1,siVal=val*inPref*inMeta.toSI,outVal=siVal/(outMeta.toSI*outPref),outSym=getPrefixSymbol(outPrefix.value);result.textContent=outVal.toLocaleString(undefined,{maximumFractionDigits:6})+' '+outSym+outMeta.u;explain.textContent=`${val} ${getPrefixSymbol(inPrefix.value)}${inMeta.u} (${inMeta.kind}) → ${outSym}${outMeta.u}`;}
+
+    inSystem.addEventListener('change',()=>{populateUnitSelect(inUnit,inSystem.value);repopulateOutputUnits();convert();});
+    outSystem.addEventListener('change',()=>{repopulateOutputUnits();convert();});
+    inUnit.addEventListener('change',()=>{repopulateOutputUnits();convert();});
+    [inVal,inPrefix,outPrefix,outUnit].forEach(e=>e.addEventListener('input',convert));outUnit.addEventListener('change',convert);
+    populateUnitSelect(inUnit,inSystem.value);repopulateOutputUnits();convert();
+    inUnit.value = 'h';
+    outUnit.value = "S";
+    convert();
+    repopulateOutputUnits();
+  </script>
 </body>
 </html>
